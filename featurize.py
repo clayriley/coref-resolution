@@ -21,7 +21,7 @@ class Featurizer:
         
         # generate values for use in features
         sentence_dist = anaphor[0][0] - antecedent[-1][0]
-        token_dist = anaphor[0][1] - antecedent[-1][1]
+        token_dist = int(anaphor[0][1]) - int(antecedent[-1][1])
         tokens_raw_i = [token[5] for token in antecedent]
         tokens_raw_j = [token[5] for token in anaphor]
         tokens_i = '_'.join(tokens_raw_i).lower()

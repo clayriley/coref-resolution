@@ -17,7 +17,7 @@ class Featurizer:
         # record whether they corefer, if training
         refs_i = set(antecedent[0][-1])
         refs_j = set(anaphor[0][-1])
-        coreference = int(refs_i.isdisjoint(refs_j)) if training else None
+        coreference = int(not refs_i.isdisjoint(refs_j)) if training else None
         
         # generate values for use in features
         sentence_dist = anaphor[0][0] - antecedent[-1][0]

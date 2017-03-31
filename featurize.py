@@ -15,7 +15,6 @@ class Featurizer:
         of tokens' features and whether or not to train"""
         
         # record whether they corefer, if training
-        coreference = int(antecedent[0][-1]==anaphor[0][-1]) if training else None
         refs_i = set(antecedent[0][-1])
         refs_j = set(anaphor[0][-1])
         coreference = int(refs_i.isdisjoint(refs_j)) if training else None

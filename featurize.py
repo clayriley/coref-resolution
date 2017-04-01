@@ -7,22 +7,22 @@
 # Dumps instances to a pickle file.
 
 import sys, os, re, errno, pickle
+from read_CoNLL import readLines
 
 class Featurizer:
 
-    def instantiate(self, antecedent, anaphor, between, training):
+    def instantiate(self, antecedent, anaphor, between):
         """ create a featurized instance given two lists of dicts 
-        of mentions' features, a list of dicts of tokens between, 
-        and whether or not to train """
+        of mentions' features, a list of dicts of tokens between """
         
         # record whether they corefer, if training
-        refs_i = set(antecedent[0]['entRefs'])
-        refs_j = set(anaphor[0]['entRefs'])
-        coreference = int(not refs_i.isdisjoint(refs_j)) if training else None
+        refs_i = set(antecedent[0]['ent_refs'])
+        refs_j = set(anaphor[0]['ent_refs'])
+        coreference = int(not refs_i.isdisjoint(refs_j)) if self.training else None
 
         # generate values for use in features
-        sentence_dist = anaphor[0]['sentenceID'] - antecedent[-1]['sentenceID']
-        token_dist = anaphor[0]['tokenID'] - antecedent[-1]['tokenID']
+        sentence_dist = anaphor[0]['sen_ID'] - antecedent[-1]['sen_ID']
+        token_dist = anaphor[0]['token_ID'] - antecedent[-1]['token_ID']
         tokens_raw_i = [token['token'] for token in antecedent]
         tokens_raw_j = [token['token'] for token in anaphor]
         tokens_i = '_'.join(tokens_raw_i).lower()
@@ -50,87 +50,10 @@ class Featurizer:
         self.input_path = self.input_path if in_path is None else in_path
 
         with open(self.input_path, 'r') as f_in:
-            
-            # regexes for this task
-            startR = re.compile(r'\((\d+)(?!\d)')
-            endR = re.compile(r'(?<!\d)(\d+)\)')
-            
-            # previously encountered and incomplete entities
-            antecedents, open_entities = [], {}
-            all_tokens = []
-            absID, senID, refID = 0, 0, 0
-            
-            for line in f_in:
-    
-                # new section: reset antecedents and sentence/token IDs
-                if line[0] == '#':
-                    antecedents, open_entities = [], {}
-                    senID = 0
-                
-                # new sentence: update sentence IDs
-                elif line.strip() == '':
-                    senID += 1
-                    open_entities = {}  # ignore any entities remaining open
-                
-                # new token
-                else:
-                    fields = line.split()
-                    fields = {'absID':absID, 
-                              'sentenceID':senID,
-                              'entRefs':fields[-1],  # coreference resolution via gold standard
-                              'fileName':fields[0],  
-                              'sectionID':fields[1],
-                              'tokenID':int(fields[2]),
-                              'token':fields[3],
-                              'POS':fields[4],
-                              'synParse':fields[5],
-                              'lemma':fields[6],
-                              'frameset':fields[7],
-                              'sense':fields[8],
-                              'speaker':fields[9],
-                              'namedEnts':fields[10],
-                              'argParse':fields[11:-1]}
-                    anaphora = []  # list of current anaphora
-                    starting = startR.findall(fields['entRefs'])
-                    ending = endR.findall(fields['entRefs'])
-                
-                    # current token has entity start(s), open it
-                    if len(starting) > 0:  
-                        for entity in starting:
-                            open_entities[entity] = [refID]  # cluster ID
-                            refID += 1
-                    
-                    # add this token's info to all opened entities
-                    fields['entRefs'] = []  # update the clusters!
-                    for entity in open_entities:
-                        fields['entRefs'].append(entity)
-                        open_entities[entity].append(fields)
-                    
-                    # current token has entity end(s), close it
-                    if len(ending) > 0:  
-                        closing = {} 
-                        for entity in ending:  # this loop ensures order preservation
-                            try:  # pop the completed entity
-                                e = open_entities.pop(entity)
-                                closing[e[0]] = e[1:]
-                            except KeyError:
-                                pass  # sweep this annotation problem under the rug
-                        for refID in closing: anaphora.append(closing[refID])  
-                    
-                    # process all possible antecedent-anaphor pairs
-                    for ana in anaphora:
-                        for ant in antecedents:
-                            intervening = [all_tokens[i] for i in range(ant[-1]['absID']+1, ana[0]['absID'])]
-                            instance, label = self.instantiate(ant, ana, intervening, self.training)
-                            ana_range = [token['absID'] for token in ana]
-                            ant_range = [token['absID'] for token in ant]
-                            self.instances.append(instance)
-                            self.labels.append(label)
-                            self.absIDs.append((ana_range, ant_range))
-                        antecedents.append(ana)  # add all completed anaphora to antecedents
-                    # add this token to list of all tokens up to this point
-                    all_tokens.append(fields)  
-                    absID += 1
+            processed = readLines(f_in, self.instantiate, classifying=False)
+            self.instances = processed['instances'] 
+            self.abs_IDs = processed['abs_IDs'] 
+            self.labels = processed['labels']            
 
 
     def write(self, out_path=None):
@@ -151,7 +74,7 @@ class Featurizer:
         # dump to pickle file
         with open(out_path, 'wb') as f_out:
             dump = {'instances':self.instances, 'labels':self.labels, 
-                    'absIDs':self.absIDs, 'source':self.input_path}
+                    'abs_IDs':self.abs_IDs, 'source':self.input_path}
             pickle.dump(dump, f_out)
 
 
@@ -161,7 +84,7 @@ class Featurizer:
         self.training = training
         self.instances = []
         self.labels = []
-        self.absIDs = []
+        self.abs_IDs = []
 
 
 def main():
@@ -182,6 +105,7 @@ def main():
 
     f.getInstances()
     print f.instances[:5]
+    print f.labels[:5]
     f.write()
     
 

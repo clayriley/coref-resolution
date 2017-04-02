@@ -180,8 +180,9 @@ def main():
                                      'fts_path':path}
         # OUTPUT PREDICTIONS
         for path in predictions:
-            print predictions[path]['abs_IDs']
+            #print predictions[path]['abs_IDs']
             hypothesizer = Hypothesizer(predictions[path])
+            hypothesizer.writeHypotheses()
 
     # SAVE CLASSIFIER AT THE END
     classifier.save()

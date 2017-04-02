@@ -50,7 +50,9 @@ class Featurizer:
         self.input_path = self.input_path if in_path is None else in_path
 
         with open(self.input_path, 'r') as f_in:
+
             processed = readLines(f_in, self.instantiate, classifying=False)
+
             self.instances = processed['instances'] 
             self.abs_IDs = processed['abs_IDs'] 
             self.labels = processed['labels']            
@@ -97,15 +99,16 @@ def main():
     out = re.sub('/data/', '/output/', re.sub(r'\..+\b', '.fts', inp))
     train = '--train' in sys.argv
 
-    print 'Input:', inp
-    print 'Output:', out
-    print 'Training:', train
+    #print 'Input:', inp
+    #print 'Output:', out
+    #print 'Training:', train
 
     f = Featurizer(inp, out, train)
 
     f.getInstances()
-    print f.instances[:5]
-    print f.labels[:5]
+    #print f.instances[:5]
+    #print f.labels[:5]
+    #print f.abs_IDs[:5]
     f.write()
     
 

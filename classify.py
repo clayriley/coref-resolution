@@ -15,6 +15,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
+#from sklearn.neural_network import MLPClassifier
 from consolidate import consolidate
 from write_hypotheses import Hypothesizer
 
@@ -22,7 +23,9 @@ from write_hypotheses import Hypothesizer
 class Classifier:
     
     # TODO: add more classifiers here if desired
-    ALLOWED = {'--svm': LinearSVC()}  
+    ALLOWED = {'--svm': LinearSVC(),
+               #'--mlp': MLPClassifier((8,4))
+               }  
   
     def __init__(self, algorithm, save_path=None):
         if save_path is None: 

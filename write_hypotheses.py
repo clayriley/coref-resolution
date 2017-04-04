@@ -61,8 +61,8 @@ class Hypothesizer:
                     
                     # once all mentions have been closed, dump them
                     if len(opened)==0:
-                        for ana in closed:
-                            for span in closed[ana]:
+                        for ana in sorted(closed.keys()):
+                            for span in sorted(closed[ana].keys()):
                                 clustered = False
                                 
                                 for ant in sorted(self.data[ana][span].keys(), reverse=True):
@@ -70,7 +70,17 @@ class Hypothesizer:
                                         
                                         if self.data[ana][span][ant][ant_span]==1:
                                             clustered = True
-                                            hyp = clusters[ant][ant_span]
+                                            try:
+                                                hyp = clusters[ant][ant_span]
+                                            except KeyError as e:
+                                                # this can happen with long, overlapping mentions.
+                                                # just keep searching.
+                                                continue
+                                                #print self.source
+                                                #print ant, ant_span
+                                                #print closed
+                                                #print clusters[ant]
+                                                #raise e
                                             if ana in clusters:
                                                 clusters[ana][span] = hyp
                                             else:

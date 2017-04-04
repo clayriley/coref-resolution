@@ -25,7 +25,7 @@ def readLines(iterable, process, classifying=False):
         raw = []
             
         # previously encountered and incomplete entities
-        antecedents, open_entities = [], {}
+        antecedents, opened = [], {}
         all_tokens = []
         abs_ID, sen_ID, ref_ID = 0, 0, 0
                  
@@ -33,13 +33,13 @@ def readLines(iterable, process, classifying=False):
    
             # new section: reset antecedents and sentence/token IDs
             if metaR.match(line):
-                antecedents, open_entities = [], {}
+                antecedents, opened = [], {}
                 sen_ID = 0
                 
             # new sentence: update sentence IDs
             elif blankR.match(line):
                 sen_ID += 1
-                open_entities = {}  # ignore any entities remaining open
+                opened = {}  # ignore any entities remaining open
                         
             # new token
             else:
@@ -47,7 +47,7 @@ def readLines(iterable, process, classifying=False):
                 fields = {'abs_ID':abs_ID, 
                           'sen_ID':sen_ID,
                           'ent_refs':fields[-1],  # coreference resolution via gold standard
-                          'file_name':fields[0],  
+                          #'file_name':fields[0],  
                           'section_ID':fields[1],
                           'token_ID':int(fields[2]),
                           'token':fields[3],
@@ -66,25 +66,41 @@ def readLines(iterable, process, classifying=False):
                 # current token has entity start(s), open it
                 if len(starting) > 0:  
                     for entity in starting:
-                        open_entities[entity] = [ref_ID]  # cluster ID
+                        # inception crash prevention
+                        if entity in opened:
+                            opened[entity][ref_ID] = []
+                        else:
+                            opened[entity] = {ref_ID: []}
                         ref_ID += 1
                     
-                # add this token's info to all opened entities
+                # add this token's info to all opened entities and vice versa
                 fields['ent_refs'] = []  # update the clusters!
-                for entity in open_entities:
+                for entity in opened:
                     fields['ent_refs'].append(entity)
-                    open_entities[entity].append(fields)
+                for entity in opened:
+                    for r in opened[entity]:
+                        opened[entity][r].append(fields)
                     
                 # current token has entity end(s), close it
                 if len(ending) > 0:  
                     closing = {} 
                     for entity in ending:  # this loop ensures order preservation
                         try:  # pop the completed entity
-                            e = open_entities.pop(entity)
-                            closing[e[0]] = e[1:]
+                            e = opened.pop(entity)
+                            # crash catch
+                            if len(e)>1:
+                                r = sorted(e.keys())[-1]
+                                youngest = e.pop(r)
+                                opened[entity] = e
+                                e = youngest
+                            else:
+                                r, e = e.items()[0]
+                            closing[r] = e
                         except KeyError:
-                            pass  # sweep this annotation problem under the rug
-                    for ref_ID in closing: anaphora.append(closing[ref_ID])  
+                            print 'entity:', entity
+                            raise
+                    for ref_ID in closing: 
+                        anaphora.append(closing[ref_ID])  
                    
                 # process all possible antecedent-anaphor pairs
                 for ana in anaphora:
@@ -97,7 +113,7 @@ def readLines(iterable, process, classifying=False):
                         labels.append(label)
                         abs_IDs.append((ant_range, ana_range))
                     antecedents.append(ana)  # add all completed anaphora to antecedents
-                # add this token to list of all tokens up to this point
+                # add this token to list of all tokens in part up to this point
                 all_tokens.append(fields)  
                 abs_ID += 1
 

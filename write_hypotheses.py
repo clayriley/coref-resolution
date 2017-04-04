@@ -31,6 +31,7 @@ class Hypothesizer:
             lines = []
             abs_ID = 0
             cluster_ID = 0
+            ref_ID = 0
             opened = {}
             escrow = {}
             clusters = {}
@@ -53,16 +54,40 @@ class Hypothesizer:
                     # mention starts have been found here
                     if len(starts)>0: 
                         for m in starts: 
-                            opened[m] = {'abs_ID':abs_ID, 'len':0}
+                            # avoid crashes for inceptive mentions
+                            if m in opened:
+                                opened[m][ref_ID] = {'abs_ID':abs_ID, 'len':0}
+                            else:
+                                opened[m] = {ref_ID:{'abs_ID':abs_ID, 'len':0}}
+                            ref_ID += 1
                             
                     escrow[abs_ID] = [line[:line.rfind(' ')+1], []]
                     for m in opened:
-                        opened[m]['len'] += 1
+                        for r in opened[m]:
+                            opened[m][r]['len'] += 1
                         
                     # mention ends have been found here
                     if len(ends)>0:
                         for m in ends:
-                            d = opened.pop(m)
+                            try:
+                                d = opened.pop(m)
+                                # only pop the YOUNGEST inceptive mention,
+                                # as there will never be an overlap
+                                if len(d)>1:
+                                    youngest = d.pop(sorted(d.keys())[-1])
+                                    opened[m] = d
+                                    d = youngest
+                                else:
+                                    d = d.values()[0]
+                            except KeyError:
+                                print 'KEYERROR'
+                                print 'ending m=',repr(m)
+                                print 'opened=',opened
+                                print 'till now:', lines[-20:]
+                                print 
+                                raise
+
+                                
                             if d['abs_ID'] in closed:
                                 closed[d['abs_ID']][d['len']] = m
                             else:
@@ -74,30 +99,36 @@ class Hypothesizer:
                         for ana in sorted(closed.keys()):
                             for span in sorted(closed[ana].keys()):
                                 clustered = False
-                                
-                                for ant in sorted(self.data[ana][span].keys(), reverse=True):
-                                    for ant_span in sorted(self.data[ana][span][ant].keys(),reverse=True):
-                                        
-                                        if self.data[ana][span][ant][ant_span]==1:
-                                            clustered = True
-                                            try:
-                                                hyp = clusters[ant][ant_span]
-                                            except KeyError as e:
-                                                # this can happen with long, overlapping mentions.
-                                                # just keep searching.
-                                                continue
-                                                #print self.source
-                                                #print ant, ant_span
-                                                #print closed
-                                                #print clusters[ant]
-                                                #raise e
-                                            if ana in clusters:
-                                                clusters[ana][span] = hyp
-                                            else:
-                                                clusters[ana] = {span: hyp}
+                                try:
+                                    for ant in sorted(self.data[ana][span].keys(), reverse=True):
+                                        for ant_span in sorted(self.data[ana][span][ant].keys(),reverse=True):
+                                            
+                                            if self.data[ana][span][ant][ant_span]==1:
+                                                clustered = True
+                                                try:
+                                                    hyp = clusters[ant][ant_span]
+                                                except KeyError as e:
+                                                    # this can happen with long, overlapping mentions.
+                                                    # just keep searching.
+                                                    continue
+                                                    #print self.source
+                                                    #print ant, ant_span
+                                                    #print closed
+                                                    #print clusters[ant]
+                                                    #raise e
+                                                if ana in clusters:
+                                                    clusters[ana][span] = hyp
+                                                else:
+                                                    clusters[ana] = {span: hyp}
+                                                break
+                                        if clustered:
                                             break
-                                    if clustered:
-                                        break
+                                except KeyError:
+                                    print 'KEYERROR 98:'
+                                    print ana
+                                    print span
+                                    for l in lines: print l
+                                    print 
                                     
                                 if not clustered:
                                     clusters[ana] = {span:cluster_ID}

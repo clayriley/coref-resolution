@@ -36,22 +36,22 @@ class Featurizer:
         token_dist = anaphor[0]['token_ID'] - antecedent[-1]['token_ID']
         tokens_i = [t['token'].lower() for t in antecedent]
         tokens_j = [t['token'].lower() for t in anaphor]
-        pos_i = [t['POS'] for t in antecedent]
-        pos_j = [t['POS'] for t in anaphor]
         overlap = 0
         for t in tokens_i:
             if t in tokens_j:
                 overlap += 1
         pro_i = len(tokens_i)==1 and tokens_i[0] in PRO
         pro_j = len(tokens_j)==1 and tokens_j[0] in PRO
-        #m_between = len([between[i]['ent_refs'] for i in range(len(between)) 
-        #                if between[i]['ent_refs'] != '-'])/2
-        prox_i = tokens_i[0] in PROX
-        prox_j = tokens_j[0] in PROX
-        dist_i = tokens_i[0] in DIST
-        dist_j = tokens_j[0] in DIST
+        pos_i = [t['POS'] for t in antecedent]
+        pos_j = [t['POS'] for t in anaphor]
         def_i = tokens_i[0] in DEF or pos_i[0] in {'NNP', 'NNPS'}
         def_j = tokens_j[0] in DEF or pos_j[0] in {'NNP', 'NNPS'}
+        ##m_between = len([between[i]['ent_refs'] for i in range(len(between)) 
+        ##                if between[i]['ent_refs'] != '-'])/2
+        #prox_i = tokens_i[0] in PROX
+        #prox_j = tokens_j[0] in PROX
+        #dist_i = tokens_i[0] in DIST
+        #dist_j = tokens_j[0] in DIST
         
         
         # build feature dict
@@ -61,16 +61,16 @@ class Featurizer:
             'overlap':overlap, #0
             #
             # TODO: this is wrong
-            #'mentions_between':m_between, #0
+            #'mentions_between':m_between, #?
             #
-            'pro_i':pro_i, #2
-            'pro_j':pro_j, #2
-            'prox_i':prox_i, #2
-            'prox_j':prox_j, #2
-            'dist_i':dist_i, #2
-            'dist_j':dist_j, #2
-            'def_i':def_i, #3
-            'def_j':def_j, #3
+            'pro_i':pro_i, #1
+            'pro_j':pro_j, #1
+            'def_i':def_i, #1
+            'def_j':def_j, #1
+            #'prox_i':prox_i, #2
+            #'prox_j':prox_j, #2
+            #'dist_i':dist_i, #2
+            #'dist_j':dist_j, #2
             }
         
         
@@ -88,12 +88,6 @@ class Featurizer:
         with open(self.input_path, 'r') as f_in:
 
             processed = readLines(f_in, self.instantiate, classifying=False)
-            
-            if len(processed['instances'])==0:
-                print self.input_path
-                print self.output_path
-                print processed
-                raise IOError('SOMETHING IS UNHAPPY IN FEATURIZE.PY')
             
             self.instances = processed['instances'] 
             self.abs_IDs = processed['abs_IDs'] 

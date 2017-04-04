@@ -46,12 +46,12 @@ class Featurizer:
         pos_j = [t['POS'] for t in anaphor]
         def_i = tokens_i[0] in DEF or pos_i[0] in {'NNP', 'NNPS'}
         def_j = tokens_j[0] in DEF or pos_j[0] in {'NNP', 'NNPS'}
+        prox_i = tokens_i[0] in PROX
+        prox_j = tokens_j[0] in PROX
+        dist_i = tokens_i[0] in DIST
+        dist_j = tokens_j[0] in DIST
         ##m_between = len([between[i]['ent_refs'] for i in range(len(between)) 
         ##                if between[i]['ent_refs'] != '-'])/2
-        #prox_i = tokens_i[0] in PROX
-        #prox_j = tokens_j[0] in PROX
-        #dist_i = tokens_i[0] in DIST
-        #dist_j = tokens_j[0] in DIST
         
         
         # build feature dict
@@ -59,18 +59,18 @@ class Featurizer:
             'dist_t':token_dist, #0
             'dist_s':sentence_dist, #0
             'overlap':overlap, #0
-            #
-            # TODO: this is wrong
-            #'mentions_between':m_between, #?
-            #
             'pro_i':pro_i, #1
             'pro_j':pro_j, #1
             'def_i':def_i, #1
             'def_j':def_j, #1
-            #'prox_i':prox_i, #2
-            #'prox_j':prox_j, #2
-            #'dist_i':dist_i, #2
-            #'dist_j':dist_j, #2
+            'prox_i':prox_i, #2
+            'prox_j':prox_j, #2
+            'dist_i':dist_i, #2
+            'dist_j':dist_j, #2
+            #
+            # TODO: this is wrong
+            #'mentions_between':m_between, #?
+            #
             }
         
         

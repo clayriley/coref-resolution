@@ -130,6 +130,7 @@ def main():
 
         # PUTTING ALL TRAINING INSTANCES INTO ONE OBJECT
         if consolidate_training:
+            print '...consolidating training instances...'
             try: 
                 data = consolidate(train_path)
                 X, y = [], []
@@ -151,6 +152,7 @@ def main():
         
     # PREDICTING WITH CLASSIFIER
     if test:
+        print '...gathering testset...'
         test_paths = []
         predictions = {}
         try: 
@@ -174,6 +176,7 @@ def main():
             test_paths.append(test_path)
 
         # TEST ALL IDENTIFIED DATA
+        print '...testing...'
         for path in test_paths:
             with open(path, 'rb') as f_in:
                 data = pickle.load(f_in)
@@ -203,6 +206,7 @@ def main():
             hypothesizer.writeHypotheses()
 
     # SAVE CLASSIFIER AT THE END
+    print '...saving classifier to {}...'.format(classifier.save_path)
     classifier.save()
 
 

@@ -184,7 +184,7 @@ def main():
         # OUTPUT PREDICTIONS
         for path in predictions:
             #print predictions[path]['abs_IDs']
-            hypothesizer = Hypothesizer(predictions[path])
+            hypothesizer = Hypothesizer(predictions.pop(path))
             hypothesizer.writeHypotheses()
 
     # SAVE CLASSIFIER AT THE END

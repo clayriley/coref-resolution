@@ -55,12 +55,13 @@ def readLines(iterable, process, classifying=False):
                           'token':fields[3],
                           'POS':fields[4],
                           'syn_parse':fields[5],
-                          'lemma':fields[6],
-                          'frameset':fields[7],
+                          #'lemma':fields[6],
+                          #'frameset':fields[7],
                           'sense':fields[8],
                           'speaker':fields[9],
                           'named_ents':fields[10],
-                          'arg_parse':fields[11:-1]}
+                          'arg_parse':fields[11:-1]
+                          }
                 anaphora = []  # list of current anaphora
                 starting = startR.findall(fields['ent_refs'])
                 ending = endR.findall(fields['ent_refs'])
@@ -74,8 +75,7 @@ def readLines(iterable, process, classifying=False):
                             opened[entity][ref_ID] = []
                         else:
                             opened[entity] = {ref_ID: []}
-                        ref_ID += 1
-                        
+                        ref_ID += 1     
                     
                 # add this token's info to all opened entities and vice versa
                 for entity in opened:

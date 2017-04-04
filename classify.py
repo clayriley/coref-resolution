@@ -177,10 +177,25 @@ def main():
         for path in test_paths:
             with open(path, 'rb') as f_in:
                 data = pickle.load(f_in)
-                predictions[path] = {'y': classifier.test(data['instances']), 
-                                     'abs_IDs': data['abs_IDs'], 
-                                     'src_path':data['source'],
-                                     'fts_path':path}
+                instances = data['instances']
+                if len(instances)==0:
+                    msg = 'No instances produced from file:\n'
+                    msg += '{}\n(at file:\n{})'.format(data['source'], path)
+                    msg += 'Skipping...'
+                    print msg
+                    continue
+                else:
+                    try:
+                        y = classifier.test(instances)
+                    except ValueError:
+                        print path
+                        print type(data['instances'])
+                        print data['instances']
+                        raise
+                    predictions[path] = {'y': y, 
+                                         'abs_IDs': data['abs_IDs'], 
+                                         'src_path':data['source'],
+                                         'fts_path':path}
         # OUTPUT PREDICTIONS
         for path in predictions.keys():
             #print predictions[path]['abs_IDs']

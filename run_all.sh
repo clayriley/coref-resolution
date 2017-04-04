@@ -7,15 +7,12 @@ SOURCE="../data/conll-2012"
 OUT="../output$1/conll-2012"
 SAVE="../save.pkl"
 
-#TEST_FTS="$OUT/dev/english/annotations/bc/cctv/00/cctv_0000.fts"
-#TEST_HYP="$OUT/dev/english/annotations/bc/cctv/00/cctv_0000.hyp"
-
 echo `date`
 echo "Finding corpus files..."
 
-train_dir=`find -E "$SOURCE/train" -type f -regex '.+\.v[0-9]_auto_conll'`
-test_dir=`find -E "$SOURCE/test" -type f -regex '.+\.v[0-9]_gold_conll'`
-dev_dir=`find -E "$SOURCE/dev" -type f -regex '.+\.v[0-9]_auto_conll'`
+train_dir=`find "$SOURCE/t0" -type f -regex '.+\.v[0-9]_auto_conll'`
+#test_dir=`find -E "$SOURCE/test" -type f -regex '.+\.v[0-9]_gold_conll'`
+dev_dir=`find "$SOURCE/t1" -type f -regex '.+\.v[0-9]_auto_conll'`
 # add -E to find in OSX systems!
 
 #echo $dev_dir
@@ -24,6 +21,7 @@ dev_dir=`find -E "$SOURCE/dev" -type f -regex '.+\.v[0-9]_auto_conll'`
 #train_gs="$SOURCE/train/english/annotations/bc/cctv/00/cctv_0001.v4_auto_conll"
 #dev_gs="$SOURCE/dev/english/annotations/bc/cctv/00/cctv_0000.v4_auto_conll"
 
+echo `date`
 echo "Featurizing trainset..."
 
 # Read trainset, featurize valid instance pairs, write out
@@ -33,6 +31,7 @@ do
 done
 #python2.7 featurize.py $train_gs --train --append $1
 
+echo `date`
 echo "Featurizing testset..."
 
 # Read gold testset, featurize with censored labels, write out
@@ -47,12 +46,14 @@ done
 #done
 # TODO add test
 
+echo `date`
 echo "Training and testing..."
 
 # Train classifier on training instances
-python2.7 classify.py --svm --train "$OUT/train" --save $SAVE --consolidate --test "$OUT/dev"
+python2.7 classify.py --svm --train "$OUT/t0" --save $SAVE --consolidate --test "$OUT/t1"
 # TODO add "$OUT/test"
 
+echo `date`
 echo "Evaluating..."
 
 # Evaluate hypotheses

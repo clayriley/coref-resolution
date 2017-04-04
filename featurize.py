@@ -44,8 +44,8 @@ class Featurizer:
                 overlap += 1
         pro_i = len(tokens_i)==1 and tokens_i[0] in PRO
         pro_j = len(tokens_j)==1 and tokens_j[0] in PRO
-        m_between = len([between[i]['ent_refs'] for i in range(len(between)) 
-                        if between[i]['ent_refs'] != '-'])/2
+        #m_between = len([between[i]['ent_refs'] for i in range(len(between)) 
+        #                if between[i]['ent_refs'] != '-'])/2
         prox_i = tokens_i[0] in PROX
         prox_j = tokens_j[0] in PROX
         dist_i = tokens_i[0] in DIST
@@ -75,7 +75,7 @@ class Featurizer:
         
         
         
-        return fts, coreference
+        return (fts, coreference)
 
 
     def getInstances(self, in_path=None):
@@ -88,7 +88,13 @@ class Featurizer:
         with open(self.input_path, 'r') as f_in:
 
             processed = readLines(f_in, self.instantiate, classifying=False)
-
+            
+            if len(processed['instances'])==0:
+                print self.input_path
+                print self.output_path
+                print processed
+                raise IOError('SOMETHING IS UNHAPPY IN FEATURIZE.PY')
+            
             self.instances = processed['instances'] 
             self.abs_IDs = processed['abs_IDs'] 
             self.labels = processed['labels']            

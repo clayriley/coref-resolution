@@ -32,12 +32,14 @@ def readLines(iterable, process, classifying=False):
         for line in iterable:
    
             # new section: reset antecedents and sentence/token IDs
-            if metaR.match(line):
+            #if metaR.match(line):
+            if line[0]=='#':
                 antecedents, opened = [], {}
                 sen_ID = 0
                 
             # new sentence: update sentence IDs
-            elif blankR.match(line):
+            #elif blankR.match(line):
+            elif len(line.strip())==0:
                 sen_ID += 1
                 opened = {}  # ignore any entities remaining open
                         

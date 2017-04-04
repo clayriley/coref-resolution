@@ -66,20 +66,21 @@ def readLines(iterable, process, classifying=False):
                 # current token has entity start(s), open it
                 if len(starting) > 0:  
                     for entity in starting:
+                        fields['ent_refs'] = entity
                         # inception crash prevention
                         if entity in opened:
                             opened[entity][ref_ID] = []
                         else:
                             opened[entity] = {ref_ID: []}
                         ref_ID += 1
+                        
                     
                 # add this token's info to all opened entities and vice versa
-                fields['ent_refs'] = []  # update the clusters!
-                for entity in opened:
-                    fields['ent_refs'].append(entity)
                 for entity in opened:
                     for r in opened[entity]:
                         opened[entity][r].append(fields)
+                # record all entities for intervening tokens
+                fields['ent_refs'] = starting
                     
                 # current token has entity end(s), close it
                 if len(ending) > 0:  
@@ -107,8 +108,8 @@ def readLines(iterable, process, classifying=False):
                     for ant in antecedents:
                         intervening = [all_tokens[i] for i in range(ant[-1]['abs_ID']+1, ana[0]['abs_ID'])]
                         instance, label = process(ant, ana, intervening)
-                        ana_range = [token['abs_ID'] for token in ana]
-                        ant_range = [token['abs_ID'] for token in ant]
+                        ana_range = (ana[0]['abs_ID'], len(ana))
+                        ant_range = (ant[0]['abs_ID'], len(ant))
                         instances.append(instance)
                         labels.append(label)
                         abs_IDs.append((ant_range, ana_range))

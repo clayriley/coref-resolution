@@ -163,12 +163,10 @@ class Hypothesizer:
         
         for i in range(len(data.keys())):
             instance = data.pop(i)
-            ant_range, ana_range = instance.pop('abs_IDs')
+            ant, ana = instance.pop('abs_IDs')
             prediction = instance.pop('y')
-            ana_0 = ana_range[0]
-            ana_len = len(ana_range)
-            ant_0 = ant_range[0]
-            ant_len = len(ant_range)
+            ana_0, ana_len = ana
+            ant_0, ant_len = ant
             
             # add the first referent, which has no possible antecedent!
             if ant_0 not in lookup:

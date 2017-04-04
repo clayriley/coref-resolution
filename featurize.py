@@ -25,13 +25,11 @@ FEM = {'she', 'her', 'her'} # not 'hers'!
 class Featurizer:
 
     def instantiate(self, antecedent, anaphor, between):
-        """ create a featurized instance given two lists of dicts 
-        of mentions' features, a list of dicts of tokens between """
+        """ create a featurized instance given: two lists of dicts 
+        of mentions' values, a list of dicts of tokens between """
         
-        # record whether they corefer, if training
-        refs_i = set(antecedent[0]['ent_refs'])
-        refs_j = set(anaphor[0]['ent_refs'])
-        coreference = int(not refs_i.isdisjoint(refs_j)) if self.training else None
+        # record whether they corefer
+        coreference = int(antecedent[0]['ent_refs']==anaphor[0]['ent_refs'])
 
         # generate values for use in features
         sentence_dist = anaphor[0]['sen_ID'] - antecedent[-1]['sen_ID']
@@ -57,22 +55,23 @@ class Featurizer:
         
         
         # build feature dict
-        fts = {}
-        fts['dist_t']=token_dist #0
-        fts['dist_s']=sentence_dist #0
-        fts['overlap']=overlap #0
-        #
-        # TODO: this is wrong
-        #fts['mentions_between']=m_between #0
-        #
-        fts['pro_i']=pro_i #2
-        fts['pro_j']=pro_j #2
-        fts['prox_i']=prox_i #2
-        fts['prox_j']=prox_j #2
-        fts['dist_i']=dist_i #2
-        fts['dist_j']=dist_j #2
-        fts['def_i']=def_i #3
-        fts['def_j']=def_j #3
+        fts = {
+            'dist_t':token_dist, #0
+            'dist_s':sentence_dist, #0
+            'overlap':overlap, #0
+            #
+            # TODO: this is wrong
+            #'mentions_between':m_between, #0
+            #
+            'pro_i':pro_i, #2
+            'pro_j':pro_j, #2
+            'prox_i':prox_i, #2
+            'prox_j':prox_j, #2
+            'dist_i':dist_i, #2
+            'dist_j':dist_j, #2
+            'def_i':def_i, #3
+            'def_j':def_j, #3
+            }
         
         
         

@@ -182,7 +182,7 @@ def main():
                                      'src_path':data['source'],
                                      'fts_path':path}
         # OUTPUT PREDICTIONS
-        for path in predictions:
+        for path in predictions.keys():
             #print predictions[path]['abs_IDs']
             hypothesizer = Hypothesizer(predictions.pop(path))
             hypothesizer.writeHypotheses()

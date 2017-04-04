@@ -8,9 +8,19 @@ from read_CoNLL import *
 class Hypothesizer:
 
     def __init__(self, dictionary):
-        self.data = self.organizeIDs(dictionary['y'], dictionary['abs_IDs'])
-        self.in_path = os.path.abspath(dictionary['fts_path'])
-        self.source = dictionary['src_path']
+        y = dictionary.pop('y')
+        abs_IDs = dictionary.pop('abs_IDs')            
+        try:
+            data = {i:{'y':y[i], 'abs_IDs':abs_IDs[i]} for i in range(len(y))}
+            y,abs_IDs = None,None
+        except IndexError:
+            msg = 'Hypothesizer must be provided with predictions and '
+            msg += 'absolute IDs that are the same length.  '
+            msg += '(y={}, IDs={})'.format(len(y),len(abs_IDs))
+            raise IOError(msg)
+        self.data = self.organizeIDs(data)
+        self.in_path = os.path.abspath(dictionary.pop('fts_path'))
+        self.source = dictionary.pop('src_path')
         self.out_path = self.in_path[:-4]+'.hyp'
         self.clusters = {}
 
@@ -116,20 +126,14 @@ class Hypothesizer:
             f_out.writelines(lines)
 
 
-    def organizeIDs(self, y, abs_IDs):
-
-        # validation:
-        if len(y) != len(abs_IDs):
-            msg = 'Hypothesizer must be provided with predictions and '
-            msg += 'absolute IDs that are the same length.  '
-            msg += '(y={}, IDs={})'.format(len(y),len(abs_IDs))
-            raise IOError(msg)
+    def organizeIDs(self, data):
 
         lookup = {}
         
-        for i in range(len(abs_IDs)):
-            ant_range, ana_range = abs_IDs[i]
-            prediction = y[i]
+        for i in range(len(data.keys())):
+            instance = data.pop(i)
+            ant_range, ana_range = instance.pop('abs_IDs')
+            prediction = instance.pop('y')
             ana_0 = ana_range[0]
             ana_len = len(ana_range)
             ant_0 = ant_range[0]

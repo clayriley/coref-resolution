@@ -12,12 +12,14 @@ import sys, os, re, errno, pickle
 from read_CoNLL import readLines
 
 
-PRO = {'he', 'she', 'it', 'they', 'you', "y'all", 'we', 'us', 'i', 'me', 'him', 
-       'her', 'them', 'this', 'that', 'these', 'those'}
 PROX = {'this', 'these', 'here'}
 DIST = {'that', 'those', 'there', 'then'}
-MASC = {'he', 'him'}
-FEM = {'she', 'her'}
+PERS = {'i','me', 'you', 'he','she','it','him','her', 'they','them', 'we','us'}
+POSS = {'my', 'mine', 'your', 'yours', 'his', 'her', 'hers', 'its', 'their', 'theirs', 'our', 'ours'}
+PRO = POSS.union(PERS.union(DIST.union(PROX)))
+DEF = {'the'}.union(PRO)
+MASC = {'he', 'him', 'his'}
+FEM = {'she', 'her', 'her'} # not 'hers'!
 
 
 class Featurizer:
@@ -34,24 +36,24 @@ class Featurizer:
         # generate values for use in features
         sentence_dist = anaphor[0]['sen_ID'] - antecedent[-1]['sen_ID']
         token_dist = anaphor[0]['token_ID'] - antecedent[-1]['token_ID']
-        tokens_raw_i = [token['token'] for token in antecedent]
-        tokens_raw_j = [token['token'] for token in anaphor]
-        tokens_low_i = [token['token'].lower() for token in antecedent]
-        tokens_low_j = [token['token'].lower() for token in anaphor]
-        tokens_i = '_'.join(tokens_low_i)
-        tokens_j = '_'.join(tokens_low_j)
-        POSes_i = [token['POS'] for token in antecedent]
-        POSes_j = [token['POS'] for token in anaphor]
-        tokens_raw_bt = [token['token'] for token in between]
-        tokens_bt = '_'.join(tokens_raw_bt).lower()
+        tokens_i = [t['token'].lower() for t in antecedent]
+        tokens_j = [t['token'].lower() for t in anaphor]
+        pos_i = [t['POS'] for t in antecedent]
+        pos_j = [t['POS'] for t in anaphor]
         overlap = 0
-        for t_i in tokens_low_i:
-            if t_i in tokens_low_j:
+        for t in tokens_i:
+            if t in tokens_j:
                 overlap += 1
-        pro_i = len(tokens_low_i)==1 and tokens_low_i[0] in PRO
-        pro_j = len(tokens_low_j)==1 and tokens_low_j[0] in PRO
+        pro_i = len(tokens_i)==1 and tokens_i[0] in PRO
+        pro_j = len(tokens_j)==1 and tokens_j[0] in PRO
         m_between = len([between[i]['ent_refs'] for i in range(len(between)) 
                         if between[i]['ent_refs'] != '-'])/2
+        prox_i = tokens_i[0] in PROX
+        prox_j = tokens_j[0] in PROX
+        dist_i = tokens_i[0] in DIST
+        dist_j = tokens_j[0] in DIST
+        def_i = tokens_i[0] in DEF or pos_i[0] in {'NNP', 'NNPS'}
+        def_j = tokens_j[0] in DEF or pos_j[0] in {'NNP', 'NNPS'}
         
         
         # build feature dict
@@ -59,9 +61,19 @@ class Featurizer:
         fts['dist_t']=token_dist #0
         fts['dist_s']=sentence_dist #0
         fts['overlap']=overlap #0
-        fts['mentions_between']=m_between #0
-        fts['pro_i']=pro_i #1
-        fts['pro_j']=pro_j #1
+        #
+        # TODO: this is wrong
+        #fts['mentions_between']=m_between #0
+        #
+        fts['pro_i']=pro_i #2
+        fts['pro_j']=pro_j #2
+        fts['prox_i']=prox_i #2
+        fts['prox_j']=prox_j #2
+        fts['dist_i']=dist_i #2
+        fts['dist_j']=dist_j #2
+        fts['def_i']=def_i #3
+        fts['def_j']=def_j #3
+        
         
         
         return fts, coreference

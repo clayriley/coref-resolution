@@ -54,10 +54,10 @@ def readLines(iterable, process, classifying=False):
                           'token_ID':int(fields[2]),
                           'token':fields[3],
                           'POS':fields[4],
-                          'syn_parse':fields[5],
+                          #'syn_parse':fields[5],
                           #'lemma':fields[6],
                           #'frameset':fields[7],
-                          'sense':fields[8],
+                          #'sense':fields[8],
                           'speaker':fields[9],
                           'named_ents':fields[10],
                           'arg_parse':fields[11:-1]

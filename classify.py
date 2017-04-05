@@ -154,7 +154,6 @@ def main():
     if test:
         print '...gathering testset...'
         test_paths = []
-        predictions = {}
         try: 
             # TODO include valid file checks
             test_path = os.path.abspath(sys.argv[sys.argv.index(TEST)+1])
@@ -195,15 +194,12 @@ def main():
                         print type(data['instances'])
                         print data['instances']
                         raise
-                    predictions[path] = {'y': y, 
-                                         'abs_IDs': data['abs_IDs'], 
-                                         'src_path':data['source'],
-                                         'fts_path':path}
-        # OUTPUT PREDICTIONS
-        for path in predictions.keys():
-            #print predictions[path]['abs_IDs']
-            hypothesizer = Hypothesizer(predictions.pop(path))
-            hypothesizer.writeHypotheses()
+                    d = {'y': y, 'abs_IDs': data['abs_IDs'], 
+                         'src_path':data['source'], 'fts_path':path}
+                    # OUTPUT PREDICTIONS
+                    #print predictions[path]['abs_IDs']
+                    hypothesizer = Hypothesizer(d)
+                    hypothesizer.writeHypotheses()
 
     # SAVE CLASSIFIER AT THE END
     print '...saving classifier to {}...'.format(classifier.save_path)

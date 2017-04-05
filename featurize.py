@@ -62,11 +62,13 @@ class Featurizer:
             if a['named_ents'] != '*': ents_i.add(a['named_ents'].strip('()'))
         ents_same = ents_i.isdisjoint(ents_j)
         m_between = 0
-        for i in range(len(between)): m_between += len(between[i]['ent_refs']):
+        for i in range(len(between)): m_between += len(between[i]['ent_refs'])
         masc_i = float(sum([tokens_i[i] in MASC for i in range(len(tokens_i))]))/len(tokens_i)
         masc_j = float(sum([tokens_i[i] in MASC for i in range(len(tokens_i))]))/len(tokens_i)
         fem_i = float(sum([tokens_i[i] in FEM for i in range(len(tokens_i))]))/len(tokens_i)
         fem_j = float(sum([tokens_i[i] in FEM for i in range(len(tokens_i))]))/len(tokens_i)
+        overlap_i = float(overlap)/len(tokens_i)
+        overlap_j = float(overlap)/len(tokens_j)
         
         
         # build feature dict
@@ -91,6 +93,9 @@ class Featurizer:
             'masc_j':masc_j, #4
             'fem_i':fem_i, #4
             'fem_j':fem_j, #4
+            'overlap_i_normed':overlap_i, #4
+            'overlap_j_normed':overlap_j, #4
+            # RF: #4rf
             }
         
         

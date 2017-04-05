@@ -99,36 +99,25 @@ class Hypothesizer:
                         for ana in sorted(closed.keys()):
                             for span in sorted(closed[ana].keys()):
                                 clustered = False
-                                try:
-                                    for ant in sorted(self.data[ana][span].keys(), reverse=True):
-                                        for ant_span in sorted(self.data[ana][span][ant].keys(),reverse=True):
-                                            
-                                            if self.data[ana][span][ant][ant_span]==1:
-                                                clustered = True
-                                                try:
-                                                    hyp = clusters[ant][ant_span]
-                                                except KeyError as e:
-                                                    # this can happen with long, overlapping mentions.
-                                                    # just keep searching.
-                                                    continue
-                                                    #print self.source
-                                                    #print ant, ant_span
-                                                    #print closed
-                                                    #print clusters[ant]
-                                                    #raise e
-                                                if ana in clusters:
-                                                    clusters[ana][span] = hyp
-                                                else:
-                                                    clusters[ana] = {span: hyp}
-                                                break
-                                        if clustered:
+                                hyp = cluster_ID
+                                for ant in sorted(self.data[ana][span].keys(), reverse=True):
+                                    for ant_span in sorted(self.data[ana][span][ant].keys(),reverse=True):
+                                        
+                                        if self.data[ana][span][ant][ant_span]==1:
+                                            clustered = True
+                                            try:
+                                                hyp = clusters[ant][ant_span]
+                                            except KeyError as e:
+                                                # this can happen with long, overlapping mentions.
+                                                # just keep searching.
+                                                continue
+                                            if ana in clusters:
+                                                clusters[ana][span] = hyp
+                                            else:
+                                                clusters[ana] = {span: hyp}
                                             break
-                                except KeyError:
-                                    print 'KEYERROR 98:'
-                                    print ana
-                                    print span
-                                    for l in lines: print l
-                                    print 
+                                    if clustered:
+                                        break
                                     
                                 if not clustered:
                                     clusters[ana] = {span:cluster_ID}

@@ -69,7 +69,6 @@ def readLines(iterable, process, classifying=False):
                 # current token has entity start(s), open it
                 if len(starting) > 0:  
                     for entity in starting:
-                        fields['ent_refs'] = entity
                         # inception crash prevention
                         if entity in opened:
                             opened[entity][ref_ID] = []
@@ -80,6 +79,7 @@ def readLines(iterable, process, classifying=False):
                 # add this token's info to all opened entities and vice versa
                 for entity in opened:
                     for r in opened[entity]:
+                        fields['ent_refs'] = entity
                         opened[entity][r].append(fields)
                 # record all entities for intervening tokens
                 fields['ent_refs'] = starting

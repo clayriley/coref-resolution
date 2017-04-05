@@ -176,6 +176,7 @@ def main():
 
         # TEST ALL IDENTIFIED DATA
         print '...testing...'
+        count = 0
         for path in test_paths:
             with open(path, 'rb') as f_in:
                 data = pickle.load(f_in)
@@ -187,6 +188,7 @@ def main():
                     print msg
                     continue
                 else:
+                    count += 1
                     try:
                         y = classifier.test(instances)
                     except ValueError:
@@ -200,6 +202,8 @@ def main():
                     #print predictions[path]['abs_IDs']
                     hypothesizer = Hypothesizer(d)
                     hypothesizer.writeHypotheses()
+        print '...{} files hypothesized.'.format(count)
+        print '...({} featurized)'.format(test_paths)
 
     # SAVE CLASSIFIER AT THE END
     print '...saving classifier to {}...'.format(classifier.save_path)

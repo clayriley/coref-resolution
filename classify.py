@@ -203,7 +203,7 @@ def main():
                     hypothesizer = Hypothesizer(d)
                     hypothesizer.writeHypotheses()
         print '...{} files hypothesized.'.format(count)
-        print '...({} featurized)'.format(test_paths)
+        print '...({} featurized)'.format(len(test_paths))
 
     # SAVE CLASSIFIER AT THE END
     print '...saving classifier to {}...'.format(classifier.save_path)

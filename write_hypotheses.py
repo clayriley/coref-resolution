@@ -100,29 +100,40 @@ class Hypothesizer:
                             for span in sorted(closed[ana].keys()):
                                 clustered = False
                                 hyp = cluster_ID
-                                for ant in sorted(self.data[ana][span].keys(), reverse=True):
-                                    for ant_span in sorted(self.data[ana][span][ant].keys(),reverse=True):
-                                        
-                                        if self.data[ana][span][ant][ant_span]==1:
-                                            clustered = True
-                                            try:
-                                                hyp = clusters[ant][ant_span]
-                                            except KeyError as e:
-                                                # this can happen with long, overlapping mentions.
-                                                # just keep searching.
-                                                continue
-                                            if ana in clusters:
-                                                clusters[ana][span] = hyp
-                                            else:
-                                                clusters[ana] = {span: hyp}
+                                try:
+                                    for ant in sorted(self.data[ana][span].keys(), reverse=True):
+                                        for ant_span in sorted(self.data[ana][span][ant].keys(),reverse=True):
+                                            
+                                            if self.data[ana][span][ant][ant_span]==1:
+                                                clustered = True
+                                                try:
+                                                    hyp = clusters[ant][ant_span]
+                                                except KeyError as e:
+                                                    # this can happen with long, overlapping mentions.
+                                                    # just keep searching.
+                                                    continue
+                                                if ana in clusters:
+                                                    clusters[ana][span] = hyp
+                                                else:
+                                                    clusters[ana] = {span: hyp}
+                                                break
+                                        if clustered:
                                             break
-                                    if clustered:
-                                        break
-                                    
-                                if not clustered:
+                                        
+                                except KeyError as e:
+                                    # this is problematic, but we're short on time--consider it unmatched
+                                    msg = 'Problem in {}:\n'.format(self.source)
+                                    msg += 'mention {} (span {}) not found in '.format(ana, span)
+                                    msg += 'Hypothesizer\'s lookup table!'
+                                    print msg
                                     clusters[ana] = {span:cluster_ID}
-                                    hyp = cluster_ID
                                     cluster_ID += 1
+                                    
+                                else:        
+                                    if not clustered:
+                                        clusters[ana] = {span:cluster_ID}
+                                        hyp = cluster_ID
+                                        cluster_ID += 1
                                 
                                 gold = closed[ana][span]
                                 if span==1:

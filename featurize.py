@@ -20,6 +20,8 @@ PRO = POSS.union(PERS.union(DIST.union(PROX)))
 DEF = {'the'}.union(PRO)
 MASC = {'he', 'him', 'his'}
 FEM = {'she', 'her', 'her'} # not 'hers'!
+PLU1 = {'these','those','they','them','we','us'}
+PLU2 = {'NNS', 'NNPS'}
 
 
 class Featurizer:
@@ -50,8 +52,21 @@ class Featurizer:
         prox_j = tokens_j[0] in PROX
         dist_i = tokens_i[0] in DIST
         dist_j = tokens_j[0] in DIST
-        ##m_between = len([between[i]['ent_refs'] for i in range(len(between)) 
-        ##                if between[i]['ent_refs'] != '-'])/2
+        plu_i = tokens_i[-1] in PLU1 or pos_i[-1] in PLU2
+        plu_j = tokens_j[-1] in PLU1 or pos_j[-1] in PLU2
+        speakers_same = anaphor[0]['speaker']==antecedent[0]['speaker']
+        ents_i, ents_j = set([]), set([])
+        for a in anaphor: 
+            if a['named_ents'] != '*': ents_j.add(a['named_ents'].strip('()'))
+        for a in antecedent: 
+            if a['named_ents'] != '*': ents_i.add(a['named_ents'].strip('()'))
+        ents_same = ents_i.isdisjoint(ents_j)
+        m_between = 0
+        for i in range(len(between)): m_between += len(between[i]['ent_refs']):
+        masc_i = float(sum([tokens_i[i] in MASC for i in range(len(tokens_i))]))/len(tokens_i)
+        masc_j = float(sum([tokens_i[i] in MASC for i in range(len(tokens_i))]))/len(tokens_i)
+        fem_i = float(sum([tokens_i[i] in FEM for i in range(len(tokens_i))]))/len(tokens_i)
+        fem_j = float(sum([tokens_i[i] in FEM for i in range(len(tokens_i))]))/len(tokens_i)
         
         
         # build feature dict
@@ -63,14 +78,19 @@ class Featurizer:
             'pro_j':pro_j, #1
             'def_i':def_i, #1
             'def_j':def_j, #1
-            'prox_i':prox_i, #2
-            'prox_j':prox_j, #2
-            'dist_i':dist_i, #2
-            'dist_j':dist_j, #2
-            #
-            # TODO: this is wrong
-            #'mentions_between':m_between, #?
-            #
+            'prox_i':prox_i, #1
+            'prox_j':prox_j, #1
+            'dist_i':dist_i, #1
+            'dist_j':dist_j, #1
+            'plu_i':plu_i, #2
+            'plu_j':plu_j, #2
+            'same_speakers':speakers_same, #2
+            'same_ent_types':ents_same, #2
+            'mentions_between':m_between, #3
+            'masc_i':masc_i, #4
+            'masc_j':masc_j, #4
+            'fem_i':fem_i, #4
+            'fem_j':fem_j, #4
             }
         
         

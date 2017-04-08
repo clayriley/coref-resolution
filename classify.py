@@ -17,15 +17,18 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 #from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from consolidate import consolidate
 from write_hypotheses import Hypothesizer
-
+from sklearn.linear_model import LogisticRegression
 
 class Classifier:
     
     # TODO: add more classifiers here if desired
-    ALLOWED = {'--svm': LinearSVC(),
-               '--rf': RandomForestClassifier(n_estimators=20)
+    ALLOWED = {'--svmlin': LinearSVC(),
+               '--rf': RandomForestClassifier(n_estimators=20),
+               '--svm': SVC(),
+               '--logit': LogisticRegression(solver='sag'),
                #'--mlp': MLPClassifier((8,4))
                }  
   

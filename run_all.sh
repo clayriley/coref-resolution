@@ -7,12 +7,15 @@ SOURCE="../data/conll-2012"
 OUT="../output$1/conll-2012"
 SAVE="../save.pkl"
 
+#TEST_FTS="$OUT/dev/english/annotations/bc/cctv/00/cctv_0000.fts"
+#TEST_HYP="$OUT/dev/english/annotations/bc/cctv/00/cctv_0000.hyp"
+
 echo `date`
 echo "Finding corpus files..."
 
-train_dir=`find "$SOURCE/t0" -type f -regex '.+\.v[0-9]_auto_conll'`
-#test_dir=`find -E "$SOURCE/test" -type f -regex '.+\.v[0-9]_gold_conll'`
-dev_dir=`find "$SOURCE/t1" -type f -regex '.+\.v[0-9]_auto_conll'`
+train_dir=`find -E "$SOURCE/train" -type f -regex '.+\.v[0-9]_auto_conll'`
+test_dir=`find -E "$SOURCE/test" -type f -regex '.+\.v[0-9]_gold_conll'`
+dev_dir=`find -E "$SOURCE/dev" -type f -regex '.+\.v[0-9]_auto_conll'`
 # add -E to find in OSX systems!
 
 #echo $dev_dir
@@ -40,17 +43,16 @@ for f in $dev_dir;
 do
   python2.7 featurize.py $f --append $1
 done
-#for f in $test_dir; 
-#do
-#  python2.7 featurize.py $f
-#done
-# TODO add test
+for f in $test_dir; 
+do
+  : #python2.7 featurize.py $f --append $1
+done
 
 echo `date`
 echo "Training and testing..."
 
 # Train classifier on training instances
-python2.7 classify.py --svm --train "$OUT/t0" --save $SAVE --consolidate --test "$OUT/t1"
+python2.7 classify.py --svmlin --train "$OUT/train" --save $SAVE --consolidate --test "$OUT/dev"
 # TODO add "$OUT/test"
 
 echo `date`

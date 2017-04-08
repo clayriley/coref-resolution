@@ -55,7 +55,7 @@ def readLines(iterable, process, classifying=False):
                           'token':fields[3],
                           'POS':fields[4],
                           #'syn_parse':fields[5],
-                          #'lemma':fields[6],
+                          'lemma':fields[6],
                           #'frameset':fields[7],
                           #'sense':fields[8],
                           'speaker':fields[9],

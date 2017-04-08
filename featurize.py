@@ -57,9 +57,11 @@ class Featurizer:
         speakers_same = anaphor[0]['speaker']==antecedent[0]['speaker']
         ents_i, ents_j = set([]), set([])
         for a in anaphor: 
-            if a['named_ents'] != '*': ents_j.add(a['named_ents'].strip('()'))
+            e = a['named_ents'].strip('()*')
+            if e != '': ents_j.add(e)
         for a in antecedent: 
-            if a['named_ents'] != '*': ents_i.add(a['named_ents'].strip('()'))
+            e = a['named_ents'].strip('()*') 
+            if e != '': ents_i.add(e)
         ents_same = ents_i.isdisjoint(ents_j)
         m_between = 0
         for i in range(len(between)): m_between += len(between[i]['ent_refs'])
@@ -69,7 +71,26 @@ class Featurizer:
         fem_j = float(sum([tokens_i[i] in FEM for i in range(len(tokens_i))]))/len(tokens_i)
         overlap_i = float(overlap)/len(tokens_i)
         overlap_j = float(overlap)/len(tokens_j)
-        
+        lems_i = set([a['lemma'] for a in antecedent])
+        lems_j = set([a['lemma'] for a in anaphor])
+        overlap_lem = len(lems_i.intersection(lems_j))
+        overlap_lem_i = float(overlap)/len(lems_i)
+        overlap_lem_j = float(overlap)/len(lems_j)
+        sen_pos_i = antecedent[0]['token_ID']
+        sen_pos_j = anaphor[0]['token_ID']
+        arg_i = 'None'
+        for p in antecedent[0]['arg_parse']:
+            arg = p.strip('()*') 
+            if arg != '':
+                arg_i = arg
+                break
+        arg_j = 'None'
+        for p in anaphor[0]['arg_parse']:
+            arg = p.strip('()*') 
+            if arg != '':
+                arg_j= arg
+                break
+ 
         
         # build feature dict
         fts = {
@@ -93,9 +114,14 @@ class Featurizer:
             'masc_j':masc_j, #4
             'fem_i':fem_i, #4
             'fem_j':fem_j, #4
-            'overlap_i_normed':overlap_i, #4
-            'overlap_j_normed':overlap_j, #4
-            # RF: #4rf
+            'overlap_i_normed':overlap_i, #5
+            'overlap_j_normed':overlap_j, #5
+            'overlap_lem_i_normed':overlap_lem_i, #6
+            'overlap_lem_j_normed':overlap_lem_j, #6
+            'sen_pos_i':sen_pos_i, #6
+            'sen_pos_j':sen_pos_j, #6
+            'arg_i':arg_i, #7
+            'arg_j':arg_j, #7
             }
         
         

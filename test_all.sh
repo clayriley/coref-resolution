@@ -6,7 +6,11 @@
 echo `date`
 echo "Finding corpus files..."
 
-test_dir=`find -E "$2" -type f -regex '.+\.v[0-9]_gold_conll'`
+if [[ $2 == *"/test/"* ]]; then
+  test_dir=`find -E "$2" -type f -regex '.+\.v[0-9]_gold_conll'`
+else
+  test_dir=`find -E "$2" -type f -regex '.+\.v[0-9]_auto_conll'`
+fi
 # add -E to find in OSX systems!
 
 echo `date`

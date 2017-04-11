@@ -68,7 +68,7 @@ for f in $dev_dir;
 do
   f_hyp=$(echo $f | awk '{gsub(/\/data\//, "/output'"$1"'/")} 1' | awk '{gsub(/\.v[0-9]_.+_.+/, ".hyp")} 1')
   if [ -f $f_hyp ]; then
-    results=$(perl ./reference-coreference-scorers-8.01/scorer.pl ceafm $f $f_hyp | grep 'Coreference:')
+    results=$(perl ./reference-coreference-scorers-8.01/scorer.pl muc $f $f_hyp | grep 'Coreference:')
     echo $f_hyp
     echo $results
     if [[ $results =~ $regex ]]; then
@@ -83,17 +83,16 @@ do
     :
   fi
 done
+
 precision=$(bc <<< "scale=4; $precision_num/$precision_den")
 recall=$(bc <<< "scale=4; $recall_num/$recall_den")
 f1=$(bc <<< "scale=4; (2*$precision*$recall)/($precision+$recall)")
-echo "$precision_num/$precision_den = $precision"
-echo "$recall_num/$recall_den = $recall"
+echo "p   = $precision_num/$precision_den = $precision"
+echo "r   = $recall_num/$recall_den = $recall"
 echo "f-1 = $f1"
-
 
 # evaluate based on dev
 # evaluate based on test
-
 
 echo `date`
 

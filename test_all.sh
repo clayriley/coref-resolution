@@ -50,8 +50,10 @@ done
 precision=$(bc <<< "scale=4; $precision_num/$precision_den")
 recall=$(bc <<< "scale=4; $recall_num/$recall_den")
 f1=$(bc <<< "scale=6; (2*$precision*$recall)/($precision+$recall)")
-echo "$precision_num/$precision_den = $precision"
-echo "$recall_num/$recall_den = $recall"
+
+
+echo "p   = $precision_num/$precision_den = $precision"
+echo "r   = $recall_num/$recall_den = $recall"
 echo "f-1 = $f1"
 
 echo `date`

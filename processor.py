@@ -12,8 +12,41 @@ class Processor:
         self.lines = []
         self.pairs = {}
 
-    def read(self, classification=None):
-                            
+    def process(self, classification=None):
+
+        def addToEntities(entities, s1, s2):
+            try:
+		        for key_1 in entities:
+		            for key_2 in entities[key_1]:
+		                entities[key_1][key_2].append((s1, s2))
+            except AttributeError:
+                msg = "addToEntities() is being called incorrectly; verify " \
+                      "that supplied dict is valid.\nValid format: {k1:{k2:" \
+                      "[], ...}, ...}"
+                raise AttributeError(msg)
+                           
+        def passFields(s1, s2, *other_args):
+            return (s1, s2)
+
+        def processFields(s1, s2, id1, id2):
+            fields = s1.split()
+            return {'sentence_ID':id1,
+                    'line_ID':id2, 
+                    #'file_name':fields[0],  
+                    'section_ID':fields[1],
+                    'token_ID':int(fields[2]),
+                    'token':fields[3],
+                    'POS':fields[4],
+                    #'syn_parse':fields[5],
+                    'lemma':fields[6],
+                    #'frameset':fields[7],
+                    #'sense':fields[8],
+                    'speaker':fields[9],
+                    'named_ents':fields[10],
+                    'arg_parse':fields[11:]}
+
+        field_action = processFields if classification is None else passFields
+        
         with open(self.input_path, 'rb') as f:
             
             instances = []
@@ -42,8 +75,12 @@ class Processor:
                 # new token
                 else:
                     field_str, refs = line.rsplit(' ', 1)
+
                     if '-' in refs:
-                        pass # TODO
+                        # only add this token's info to opened entities
+                        fields = field_action(field_str)
+                        addToEntities(opened, fields, refs)
+
                     else:
                         starts = Processor.start_R.findall(refs)
                         ends = Processor.end_R.findall(refs)
@@ -56,16 +93,11 @@ class Processor:
                                     opened[original_ID][unique_ID] = []
                                 else:
                                     opened[original_ID] = {unique_ID: []}
-                                unique_ID += 1  
-                        
-                        # add this token's info to all opened entities
-                        for identifier in opened:
-                            for u_ID in opened[original_ID]:
-                                field_str['ent_refs'] = identifier
-                                opened[entity][u_ID].append(field_str)
-                        # record all entities for intervening tokens
-                        field_str['ent_refs'] = starting
-                        
+                                unique_ID += 1
+  
+                        # add it to opened entities
+                        fields = field_action(field_str)
+                        addToEntities(opened, fields, refs)
 
 
             processed = readLines(f_in, self.instantiate, classifying=False)
@@ -84,16 +116,7 @@ class Processor:
         for line in iterable:
    
 
-                        
-            # new token
-            else:
-                
-                anaphora = []  # list of current anaphora
-                #starting = startR.findall(field_str['ent_refs'])
-                #ending = endR.findall(field_str['ent_refs'])
-                   
-   
-                    
+
 
                     
                 # current token has entity end(s), close it
@@ -141,3 +164,27 @@ class Processor:
         
         return processed
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ # TODO fix in featurize
+
+
+
+
+
+                        # record all entities for intervening tokens
+                        field_str['ent_refs'] = starting

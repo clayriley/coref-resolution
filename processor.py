@@ -14,11 +14,11 @@ class Processor:
 
     def process(self, classification=None):
 
-        def addToEntities(entities, s1, s2):
+        def addToEntities(entities, a, b):
             try:
 		        for key_1 in entities:
 		            for key_2 in entities[key_1]:
-		                entities[key_1][key_2].append((s1, s2))
+		                entities[key_1][key_2].append((a, b))
             except AttributeError:
                 msg = "addToEntities() is being called incorrectly; verify " \
                       "that supplied dict is valid.\nValid format: {k1:{k2:" \
@@ -99,6 +99,29 @@ class Processor:
                         fields = field_action(field_str)
                         addToEntities(opened, fields, refs)
 
+				        # current token has entity end(s), close it
+				        if len(ends) > 0:  
+				            closing = {} 
+				            for original_ID in ends:
+				                try:
+				                    entity = opened.pop(original_ID)
+				                    # catch inception
+				                    if len(e)>1:
+				                        r = sorted(entity.keys())[-1]
+				                        youngest = entity.pop(r)
+				                        opened[entity] = entity
+				                        entity = youngest
+				                    else:
+				                        r, entity = entity.items()[0]
+				                    closing[r] = entity
+				                except KeyError:
+				                    msg = 'Tried to close entity {} (original' \
+                                          ' ID: {}) without opening it' \
+                                          '!'.format(line_ID, original_ID)
+				                    raise KeyError(msg)
+				            for unique_ID in closing: 
+				                anaphora.append(closing[unique_ID])  
+
 
             processed = readLines(f_in, self.instantiate, classifying=False)
             
@@ -119,26 +142,7 @@ class Processor:
 
 
                     
-                # current token has entity end(s), close it
-                if len(ending) > 0:  
-                    closing = {} 
-                    for entity in ending:  # this loop ensures order preservation
-                        try:  # pop the completed entity
-                            e = opened.pop(entity)
-                            # crash catch
-                            if len(e)>1:
-                                r = sorted(e.keys())[-1]
-                                youngest = e.pop(r)
-                                opened[entity] = e
-                                e = youngest
-                            else:
-                                r, e = e.items()[0]
-                            closing[r] = e
-                        except KeyError:
-                            print 'entity:', entity
-                            raise
-                    for unique_ID in closing: 
-                        anaphora.append(closing[unique_ID])  
+
                    
                 # process all possible antecedent-anaphor pairs
                 for ana in anaphora:

@@ -16,13 +16,13 @@ class Processor:
 
         def addToEntities(entities, a, b):
             try:
-		        for key_1 in entities:
-		            for key_2 in entities[key_1]:
-		                entities[key_1][key_2].append((a, b))
+		        for key in entities:
+		            for series in entities[key]:
+		                series.append((a, b))
             except AttributeError:
                 msg = "addToEntities() is being called incorrectly; verify " \
-                      "that supplied dict is valid.\nValid format: {k1:{k2:" \
-                      "[], ...}, ...}"
+                      "that supplied dict is valid.\nValid format: {k:[" \
+                      "[], ...], ...}"
                 raise AttributeError(msg)
                            
         def passFields(s1, s2, *other_args):
@@ -45,7 +45,7 @@ class Processor:
                     'named_ents':fields[10],
                     'arg_parse':fields[11:]}
 
-        field_action = processFields if classification is None else passFields
+        fieldAction = processFields if classification is None else passFields
         
         with open(self.input_path, 'rb') as f:
             
@@ -57,7 +57,7 @@ class Processor:
             # previously encountered and incomplete entities
             antecedents, opened = [], {}
             all_tokens = []
-            line_ID, sentence_ID, unique_ID = 0, 0, 0
+            line_ID, sentence_ID = 0, 0
             
             for line in f:
                             
@@ -78,49 +78,70 @@ class Processor:
 
                     if '-' in refs:
                         # only add this token's info to opened entities
-                        fields = field_action(field_str)
+                        fields = fieldAction(field_str)
                         addToEntities(opened, fields, refs)
 
                     else:
                         starts = Processor.start_R.findall(refs)
                         ends = Processor.end_R.findall(refs)
+                        anaphora = []
                                        
                         # current token has entity start(s); open it
                         if len(starts) > 0:  
                             for original_ID in starts:
                                 # inception crash prevention
                                 if original_ID in opened:
-                                    opened[original_ID][unique_ID] = []
+                                    opened[original_ID].append(
                                 else:
                                     opened[original_ID] = {unique_ID: []}
-                                unique_ID += 1
   
                         # add it to opened entities
-                        fields = field_action(field_str)
+                        fields = fieldAction(field_str)
                         addToEntities(opened, fields, refs)
 
-				        # current token has entity end(s), close it
+				        # current token has entity end(s); close it
 				        if len(ends) > 0:  
-				            closing = {} 
 				            for original_ID in ends:
 				                try:
-				                    entity = opened.pop(original_ID)
-				                    # catch inception
-				                    if len(e)>1:
-				                        r = sorted(entity.keys())[-1]
-				                        youngest = entity.pop(r)
-				                        opened[entity] = entity
-				                        entity = youngest
-				                    else:
-				                        r, entity = entity.items()[0]
-				                    closing[r] = entity
+				                    entities = opened.pop(original_ID)
 				                except KeyError:
-				                    msg = 'Tried to close entity {} (original' \
-                                          ' ID: {}) without opening it' \
-                                          '!'.format(line_ID, original_ID)
+				                    msg = 'Tried to close entity {} '\
+                                    '(original ID: {}) without opening ' \
+                                    'it!'.format(line_ID, original_ID)
 				                    raise KeyError(msg)
-				            for unique_ID in closing: 
-				                anaphora.append(closing[unique_ID])  
+                                else:
+				                    reference = entities.pop()  # catch inceptions; FILO
+				                    # add all closing references to current line's anaphora
+								    anaphora.append(reference)  
+                                    if len(entities) > 0:  # replace remainder
+				                        opened[original_ID] = entities
+
+                # process all possible antecedent-anaphor pairs
+                for ana in anaphora:
+                    for ant in antecedents:
+                        intervening = [all_tokens[i] for i in range(ant[-1]['line_ID']+1, ana[0]['line_ID'])]
+                        instance, label = process(ant, ana, intervening)
+                        ana_range = (ana[0]['line_ID'], len(ana))
+                        ant_range = (ant[0]['line_ID'], len(ant))
+                        instances.append(instance)
+                        labels.append(label)
+                        line_IDs.append((ant_range, ana_range))
+                    antecedents.append(ana)  # add all completed anaphora to antecedents
+                # add this token to list of all tokens in part up to this point
+                all_tokens.append(field_str)  
+                line_ID += 1
+
+            raw.append(line)
+
+
+
+
+
+
+
+
+
+
 
 
             processed = readLines(f_in, self.instantiate, classifying=False)
@@ -144,22 +165,7 @@ class Processor:
                     
 
                    
-                # process all possible antecedent-anaphor pairs
-                for ana in anaphora:
-                    for ant in antecedents:
-                        intervening = [all_tokens[i] for i in range(ant[-1]['line_ID']+1, ana[0]['line_ID'])]
-                        instance, label = process(ant, ana, intervening)
-                        ana_range = (ana[0]['line_ID'], len(ana))
-                        ant_range = (ant[0]['line_ID'], len(ant))
-                        instances.append(instance)
-                        labels.append(label)
-                        line_IDs.append((ant_range, ana_range))
-                    antecedents.append(ana)  # add all completed anaphora to antecedents
-                # add this token to list of all tokens in part up to this point
-                all_tokens.append(field_str)  
-                line_ID += 1
 
-            raw.append(line)
 
         processed['instances'] = instances
         processed['line_IDs'] = line_IDs

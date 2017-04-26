@@ -102,8 +102,8 @@ def readLines(iterable, process, classifying=False):
                         except KeyError:
                             print 'entity:', entity
                             raise
-                    for ref_ID in closing: 
-                        anaphora.append(closing[ref_ID])  
+                    for r_ID in closing: # TODO remove this altogether--it isn't necessary, just use a stack
+                        anaphora.append(closing[r_ID])  
                    
                 # process all possible antecedent-anaphor pairs
                 for ana in anaphora:

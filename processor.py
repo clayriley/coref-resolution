@@ -47,29 +47,23 @@ class Processor:
 
         fieldAction = processFields if classification is None else passFields
         
-        with open(self.input_path, 'rb') as f:
-            
-            instances = []
-            line_IDs = []
-            labels = []
-            raw = []
+        with open(self.input_path, 'rb') as f:         
             
             # previously encountered and incomplete entities
-            antecedents, opened = [], {}
-            all_tokens = []
+            context, antecedents, opened = [], [], {}
             line_ID, sentence_ID = 0, 0
             
             for line in f:
                             
-                # end of sentence: update sentence IDs
+                # new sentence
                 if line.strip() == '':
                     sentence_ID += 1
                     line_ID += 1
                     opened = {}
                 
-                # new section: reset all entities and sentence IDs
+                # new section: flush all entities/tokens and sentence ID
                 elif line[0] == '#':
-                    antecedents, opened, sentence_ID = [], {}, 0
+                    context, antecedents, opened, sentence_ID = [], [], {}, 0
                     line_ID += 1
                 
                 # new token
@@ -116,63 +110,15 @@ class Processor:
                                     if len(entities) > 0:  # replace remainder
 				                        opened[original_ID] = entities
 
-                # process all possible antecedent-anaphor pairs
-                for ana in anaphora:
-                    for ant in antecedents:
-                        intervening = [all_tokens[i] for i in range(ant[-1]['line_ID']+1, ana[0]['line_ID'])]
-                        instance, label = process(ant, ana, intervening)
-                        ana_range = (ana[0]['line_ID'], len(ana))
-                        ant_range = (ant[0]['line_ID'], len(ant))
-                        instances.append(instance)
-                        labels.append(label)
-                        line_IDs.append((ant_range, ana_range))
-                    antecedents.append(ana)  # add all completed anaphora to antecedents
-                # add this token to list of all tokens in part up to this point
-                all_tokens.append(field_str)  
-                line_ID += 1
-
-            raw.append(line)
-
-
-
-
-
-
-
-
-
-
-
-
-            processed = readLines(f_in, self.instantiate, classifying=False)
-            
-            self.instances = processed['instances'] 
-            self.line_IDs = processed['line_IDs'] 
-            self.labels = processed['labels']    
-
-            if len(pairs) > 0:
-                yield pairs.pop()
-            else:
-            for 
-            
-            
-    def readLines(iterable, process):
-        for line in iterable:
-   
-
-
-
-                    
-
-                   
-
-
-        processed['instances'] = instances
-        processed['line_IDs'] = line_IDs
-        processed['labels'] = labels
-        processed['raw'] = raw
-        
-        return processed
+		            # featurize all possible antecedent-anaphor pairs
+		            for ant in antecedents:
+		                for ana in anaphora:
+		                    before, after = None, None
+		                    between = [context[i] for i in range(ant[-1]['line_ID']+1, ana[0]['line_ID'])]
+                            yield (ant, between, ana)  # the magic
+		            antecedents.extend(anaphora)  # update antecedents
+		            context.append(field_str)  # update context tokens
+		            line_ID += 1
 
 
 
@@ -193,6 +139,16 @@ class Processor:
  # TODO fix in featurize
 
 
+
+
+
+		                    instance, label = process(ant, ana, between)
+		                    ana_range = (ana[0]['line_ID'], len(ana))
+		                    ant_range = (ant[0]['line_ID'], len(ant))
+
+		                    instances.append(instance)
+		                    labels.append(label)
+		                    line_IDs.append((ant_range, ana_range))
 
 
 

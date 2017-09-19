@@ -9,6 +9,7 @@
 # Dumps instances to a pickle file.
 
 import sys, os, re, errno, pickle
+import argparse
 from read_CoNLL import readLines
 
 
@@ -25,6 +26,14 @@ PLU2 = {'NNS', 'NNPS'}
 
 
 class Featurizer:
+
+    def __init__(self, input_path, output_path, training):
+        self.input_path = input_path
+        self.output_path = output_path
+        self.training = training
+        self.instances = []
+        self.labels = []
+        self.abs_IDs = []
 
     def instantiate(self, antecedent, anaphor, between):
         """ create a featurized instance given: two lists of dicts 
@@ -167,33 +176,21 @@ class Featurizer:
             pickle.dump(dump, f_out)
 
 
-    def __init__(self, input_path, output_path, training):
-        self.input_path = input_path
-        self.output_path = output_path
-        self.training = training
-        self.instances = []
-        self.labels = []
-        self.abs_IDs = []
 
 
 def main():
 
-    if len(sys.argv) < 2: 
-        raise IOError('featurize.py requires a filepath arg.\nusage: >'
-                      'featurize.py <path to file to featurize> (--train)')
+    p = argparse.ArgumentParser()
+    p.add_argument('filepath', nargs=1, help='file to featurize')
+    p.add_argument('--train', action='store_true', dest='train')
+    p.add_argument('--append', nargs=1, dest='append')
+    args = p.parse_args()
 
-    inp = os.path.abspath(sys.argv[1])
-    app = '--append' in sys.argv
-    if app:
-        try:
-            append = sys.argv[sys.argv.index('--append')+1]
-        except IndexError:
-            raise IOError('featurize.py must be given an appendix if using '
-                          'the --append flag.')
-    else:
-        append=''
+    inp = os.path.abspath(args['filepath'])
+    app = 'append' in args
+    append = args['append'] if app else ''
     out = re.sub('/data/', '/output'+append+'/', re.sub(r'\..+\b', '.fts', inp))
-    train = '--train' in sys.argv
+    train = args['train']
 
     #print 'Input:', inp
     #print 'Output:', out
